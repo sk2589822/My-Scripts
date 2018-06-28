@@ -11,7 +11,7 @@ for folder_name in os.listdir(dir_path) :
     #Prevent duplicated name when there are more than two version exist.
     info = folder_name.replace(new_name, "")
     info = re.sub("\[\d{7}\]$", "", info)
-    new_name = re.sub("^((?P<session_1>\(C\d{1,3}\))? ?(\[(?P<author>.*?)\])? ?(?P<name>[^\[\(]*)) ?(\[DL.\])? ?(?P<session_2>\(C\d{1,3}\))?",
+    new_name = re.sub("^((?P<session_1>\(C\d{1,3}\))? ?(\[(?P<author>.*?)\])? ?(?P<name>[^\[\(]*)) ?(?P<session_2>\(C\d{1,3}\))?$",
                       "\g<author>---ForSplit---\g<session_1>\g<session_2>    \g<name>",
                       new_name, 
                       flags=re.IGNORECASE)
