@@ -2,15 +2,15 @@ import re
 import os
 import pathlib
 
-dir_path = r"C:/TEST/"
+dir_path = r"F:/HentaiAtHome_1.4.2/download/"
 os.chdir(dir_path)
 for folder_name in os.listdir(dir_path) :
     if not os.path.isdir(os.path.join(dir_path, folder_name)):
         continue
-    new_name = re.sub(" ?\[(\d{6}|DL.|別.*?)\]", "", folder_name, flags=re.IGNORECASE)
+    new_name = re.sub(" ?\[(\d{7}|DL.|別.*?)\]", "", folder_name, flags=re.IGNORECASE)
     #Prevent duplicated name when there are more than two version exist.
     info = folder_name.replace(new_name, "")
-    info = re.sub("\[\d{6}\]$", "", info)
+    info = re.sub("\[\d{7}\]$", "", info)
     new_name = re.sub("^((?P<session_1>\(C\d{1,3}\))? ?(\[(?P<author>.*?)\])? ?(?P<name>[^\[\(]*)) ?(\[DL.\])? ?(?P<session_2>\(C\d{1,3}\))?",
                       "\g<author>---ForSplit---\g<session_1>\g<session_2>    \g<name>",
                       new_name, 
@@ -30,4 +30,3 @@ for folder_name in os.listdir(dir_path) :
         if os.path.isdir(new_name) :
             new_name += info
         os.rename(folder_name, new_name)
-os.system(r"del /s g*.txt")
