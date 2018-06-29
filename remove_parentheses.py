@@ -3,6 +3,7 @@ import os
 
 dir_path = r"D:/N/"
 os.chdir(dir_path)
+
 for folder_name in os.listdir(dir_path):
     if not os.path.isdir(os.path.join(dir_path, folder_name)):
         continue
