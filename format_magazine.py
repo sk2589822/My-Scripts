@@ -11,9 +11,14 @@ for folder_name in os.listdir(dir_path):
     #Prevent duplicated name when there are more than two version exist.
     info = folder_name.replace(new_name, "")
     info = re.sub("\[\d{7}\]$", "", info)
-    new_name = re.sub("^(\(.*?\))? ?(\[.*?\]) ?(?P<name_front>.*?年)(?P<month>\d+)(?P<name_rear>月.*?)$",
-                      lambda m : m.group("name_front") + m.group("month").zfill(2) + m.group("name_rear"),
-                      new_name)
+    if re.search("年\d+月", new_name):
+        new_name = re.sub("^(\(.*?\))? ?(\[.*?\]) ?(?P<name_front>.*?年)(?P<month>\d+)(?P<name_rear>月.*?)$",
+			  lambda m : m.group("name_front") + m.group("month").zfill(2) + m.group("name_rear"),
+			  new_name)
+        
+    else:
+        new_name = re.sub("^(\(.*?\))? ?(\[.*?\]) ?(?P<name>.*?)$", "\g<name>", new_name)
+	
     new_name = re.sub("VOL", "Vol", new_name, flags=re.IGNORECASE)
     new_name = new_name.strip()
 
