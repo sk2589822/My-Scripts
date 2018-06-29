@@ -4,6 +4,7 @@ import pathlib
 
 dir_path = r"F:/HentaiAtHome_1.4.2/download/"
 os.chdir(dir_path)
+
 for folder_name in os.listdir(dir_path) :
     if not os.path.isdir(os.path.join(dir_path, folder_name)):
         continue
@@ -16,17 +17,16 @@ for folder_name in os.listdir(dir_path) :
                       new_name, 
                       flags=re.IGNORECASE)
     new_name = new_name.strip()
-
     if re.search("---ForSplit---", new_name): 
         author, new_name = new_name.split("---ForSplit---", 1)
-        if author == "":
-            continue
         new_name = new_name.strip()
+        if author != "":
+            pathlib.Path(author).mkdir(parents=True, exist_ok=True) 
             
-        pathlib.Path(author).mkdir(parents=True, exist_ok=True) 
-        
-        parent_folder = os.path.join(dir_path, author)
-        new_name = os.path.join(parent_folder, new_name)
+            parent_folder = os.path.join(dir_path, author)
+            new_name = os.path.join(parent_folder, new_name)
         if os.path.isdir(new_name) :
             new_name += info
         os.rename(folder_name, new_name)
+        
+
