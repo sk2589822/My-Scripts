@@ -9,17 +9,18 @@ for folder_name in os.listdir(dir_path) :
     if not os.path.isdir(os.path.join(dir_path, folder_name)):
         continue
     
-    if not re.search("^((\(C\d{1,3}\))? ?(\[.*?\])? ?[^\[\(]*) ?(\(C\d{1,3}\))? ?\[\d{6,7}\]$", folder_name):
+    if not re.search("[^\[\(]* \[\d{6,7}\]$", folder_name):
         continue
     
     new_name = re.sub(" ?\[(\d{6,7}|DL.|別.*?)\]", "", folder_name, flags=re.IGNORECASE)
     info = re.sub("\[\d{6,7}\]$", "", folder_name.replace(new_name, ""))
 
-    new_name = re.sub("^((?P<session_1>\(C\d{1,3}\))? ?(\[(?P<author>.*?)\])? ?(?P<name>[^\[\(]*)) ?(?P<session_2>\(C\d{1,3}\))?$",
-                      "\g<author>---ForSplit---\g<session_1>\g<session_2>    \g<name>",
-                      new_name, 
-                      flags=re.IGNORECASE)\
-		 .strip()
+    #pattern = r"^((?P<session_1>\(.*?\d+.*?\))? ?(\[(?P<author>.*?)\])? ?(?P<name>[^\[\(]*)) ?(?P<session_2>\(.*?\d+.*?\))? ?(?P<parody>\(.*?\))?$"
+    #repl = r"\g<author>---ForSplit---\g<session_1>\g<session_2>    \g<name> \g<parody>"
+    pattern = r"^((?P<session>\(.*?\d+.*?\))? ?(\[(?P<author>.*?)\])? ?(?P<name>.*))$"
+    repl = r"\g<author>---ForSplit---\g<session> \g<name>"
+    new_name = re.sub(pattern, repl, new_name,  flags=re.IGNORECASE)\
+                 .strip()
 
     if re.search("---ForSplit---", new_name): 
         author, new_name = new_name.split("---ForSplit---", 1)
@@ -33,7 +34,8 @@ for folder_name in os.listdir(dir_path) :
                 info = ""
             else:
                 new_name += " [another]"
-        print("{: <30}".format(folder_name), "\t->", new_name.replace(dir_path, ""))
+        print(folder_name)
+        print(new_name.replace(dir_path, ""))
         os.rename(folder_name, new_name)
         
 os.system("pause")
