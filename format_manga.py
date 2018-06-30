@@ -11,8 +11,8 @@ for folder_name in os.listdir(dir_path):
     if not re.search("^(\(.*?\))? ?\[.*?\].*?$", folder_name):
         continue
 		
-    new_name = re.sub(" ?\[(\d{7}|DL.|別.*?)\]", "", folder_name, flags=re.IGNORECASE)
-    info = re.sub("\[\d{7}\]$", "", folder_name.replace(new_name, ""))
+    new_name = re.sub(" ?\[(\d{6,7}|DL.|別.*?)\]", "", folder_name, flags=re.IGNORECASE)
+    info = re.sub("\[\d{6,7}\]$", "", folder_name.replace(new_name, ""))
     
     new_name = re.sub("^(\(.*?\))? ?\[(?P<author>.*?)\] ?(?P<name>.*?)$",
                         "\g<author>　()\g<name>",
