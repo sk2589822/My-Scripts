@@ -11,7 +11,7 @@ for folder_name in os.listdir(dir_path):
     if not re.search("^(\(.*?\))? ?(\[.*?\]).*?$", folder_name):
         continue
     
-    new_name = re.sub(" ?\[(\d{6,7}|DL.|別.*?)\]", "", folder_name, flags=re.IGNORECASE)
+    new_name = re.sub(" ?\[(\d{6,7}|DL.|別.*?)\]$", "", folder_name, flags=re.IGNORECASE)
     info = re.sub("\[\d{6,7}\]$", "", folder_name.replace(new_name, ""))
 	
     if re.search("年\d+月", new_name):
@@ -31,7 +31,7 @@ for folder_name in os.listdir(dir_path):
             info = ""
         else:
             new_name += " [another]"
-    print("{: <30}".format(folder_name), "\t->", new_name)
+    print(folder_name.ljust(60), "->", new_name)
     os.rename(folder_name, new_name)
 
 os.system("pause")
