@@ -24,13 +24,14 @@ for folder_name in os.listdir(dir_path):
 	
     new_name = re.sub("VOL", "Vol", new_name, flags=re.IGNORECASE)\
 		 .strip()
-    new_name = new_name.replace("X-EROS (コミックゼロス) #", "X-EROS（ゼロス） ＃")\
-                       .replace("コミック・マショウ", "コミックマショウ")\
-                       .replace("コミックアンリアル", "COMIC アンリアル")\
-                       .replace("コミック刺激的SQUIRT!!", "コミック刺激的SQUIRT！！")\
-                       .replace("Girls forM (ガールズフォーム)", "ガールズフォーム")\
-                       .replace("(コミック エグゼ) ", "Vol.")\
-                       .replace("ANGEL倶楽部", "ANGEL 倶楽部")
+    new_name = new_name.replace("X-EROS (コミックゼロス) #", "X-EROS（ゼロス） ＃") \
+                       .replace("コミック・マショウ", "コミックマショウ") \
+                       .replace("コミックアンリアル", "COMIC アンリアル") \
+                       .replace("コミック刺激的SQUIRT!!", "コミック刺激的SQUIRT！！") \
+                       .replace("Girls forM (ガールズフォーム)", "ガールズフォーム") \
+                       .replace("(コミック エグゼ) ", "Vol.") \
+                       .replace("ANGEL倶楽部", "ANGEL 倶楽部") \
+                       .replace("COMlC", "COMIC")
     
     while os.path.isdir(new_name) :
         if info != "":
