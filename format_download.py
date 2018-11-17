@@ -2,7 +2,7 @@ import re
 import os
 import pathlib
 
-dir_path = r"F:\\HentaiAtHome_1.4.2\\download"
+dir_path = r"D:\\HentaiAtHome_1.4.2\\download"
 os.chdir(dir_path)
 
 for folder_name in os.listdir(dir_path) :
