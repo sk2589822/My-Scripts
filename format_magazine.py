@@ -31,7 +31,8 @@ for folder_name in os.listdir(dir_path):
                        .replace("Girls forM (ガールズフォーム)", "ガールズフォーム") \
                        .replace("(コミック エグゼ) ", "Vol.") \
                        .replace("ANGEL倶楽部", "ANGEL 倶楽部") \
-                       .replace("COMlC", "COMIC")
+                       .replace("COMlC", "COMIC")\
+                       .replace("ExE", "E×E")
     
     while os.path.isdir(new_name) :
         if info != "":
