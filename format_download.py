@@ -9,11 +9,11 @@ for folder_name in os.listdir(dir_path) :
     if not os.path.isdir(os.path.join(dir_path, folder_name)):
         continue
     
-    if not re.search("[^\[\(]* \[\d{6,7}\]$", folder_name):
+    if not re.search("[^\[\(]* \[\d{6,7}(-\d*x)?\]$", folder_name):
         continue
     
-    new_name = re.sub(" ?\[(\d{6,7}|DL.|別.*?)\]", "", folder_name, flags=re.IGNORECASE)
-    info = re.sub("\[\d{6,7}\]$", "", folder_name.replace(new_name, ""))
+    new_name = re.sub(" ?\[(\d{6,7}(-\d*x)?|DL.|別.*?)\]", "", folder_name, flags=re.IGNORECASE)
+    info = re.sub("\[\d{6,7}(-\d*x)?\]$", "", folder_name.replace(new_name, ""))
 
     #pattern = r"^((?P<session_1>\(.*?\d+.*?\))? ?(\[(?P<author>.*?)\])? ?(?P<name>[^\[\(]*)) ?(?P<session_2>\(.*?\d+.*?\))? ?(?P<parody>\(.*?\))?$"
     #repl = r"\g<author>---ForSplit---\g<session_1>\g<session_2>    \g<name> \g<parody>"
