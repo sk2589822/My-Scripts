@@ -1,4 +1,4 @@
 @echo off
-cd /d D:\HentaiAtHome_1.4.2\download
+cd /d H:\HentaiAtHome\download
 del /s galleryinfo.txt
 pause
