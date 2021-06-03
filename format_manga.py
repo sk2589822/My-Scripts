@@ -1,12 +1,19 @@
 import re
 import os
 
+<<<<<<< HEAD
 dir_path = r'D:\N'
 storage_path = r'G:\EX-II\漫'
 
 def main():
     ensure = input('Enter "1" to rename or else to preview the results: ') == '1'
 
+=======
+dir_path = r'D:\\N'
+storage_path = r'G:\\EX-II\\漫'
+
+def main():
+>>>>>>> a75952d6ee56589d62a8cb3103f3f338e04a57ac
     manga_list = os.listdir(storage_path)
 
     for folder_name in os.listdir(dir_path):
@@ -36,8 +43,13 @@ def main():
 
         new_folder_name = add_info_if_duplicate(new_folder_name, info)
         
+<<<<<<< HEAD
         rename_folder(folder_name, new_folder_name, dir_path, ensure)
         rename_existing_folder(new_index, existing_mangas, ensure)
+=======
+        rename_folder(folder_name, new_folder_name, dir_path)
+        rename_existing_folder(new_index, existing_mangas)
+>>>>>>> a75952d6ee56589d62a8cb3103f3f338e04a57ac
 
     os.system('pause')
 
@@ -86,6 +98,7 @@ def add_info_if_duplicate(new_folder_name, info):
             new_folder_name += ' [another]'
     return new_folder_name
 
+<<<<<<< HEAD
 
 def rename_folder(old_name, new_name, path, ensure):
     os.chdir(path)
@@ -99,5 +112,16 @@ def rename_existing_folder(new_index, existing_mangas, ensure):
     if new_index == 2:
         author, title = existing_mangas[0].split('　', 1)
         rename_folder(existing_mangas[0], get_new_folder_name(author, title, 1), storage_path, ensure)
+=======
+def rename_folder(old_name, new_name, path):
+    os.chdir(path)
+    print(old_name.ljust(40), '\t->', new_name)
+    #os.rename(old_name, new_name)
+
+def rename_existing_folder(new_index, existing_mangas):
+    if new_index == 2:
+        author, title = existing_mangas[0].split('　', 1)
+        rename_folder(existing_mangas[0], get_new_folder_name(author, title, 1), storage_path)
+>>>>>>> a75952d6ee56589d62a8cb3103f3f338e04a57ac
 
 main()
