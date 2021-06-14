@@ -2,18 +2,18 @@ import re
 import os
 import pathlib
 
-dir_path = r"H:\\HentaiAtHome\\download"
+dir_path = r"H:\HentaiAtHome\download"
 os.chdir(dir_path)
 
 for folder_name in os.listdir(dir_path) :
     if not os.path.isdir(os.path.join(dir_path, folder_name)):
         continue
-    
-    if not re.search("[^\[\(]* \[\d{6,7}(-\d*x)?\]$", folder_name):
+
+    if not re.search("[^\[\(]* \[\d{1,7}(-\d*x)?\]$", folder_name):
         continue
-    
-    new_name = re.sub(" ?\[(\d{6,7}(-\d*x)?|DL.|別.*?)\]", "", folder_name, flags=re.IGNORECASE)
-    info = re.sub("\[\d{6,7}(-\d*x)?\]$", "", folder_name.replace(new_name, ""))
+
+    new_name = re.sub(" ?\[(\d{1,7}(-\d*x)?|DL.|別.*?)\]", "", folder_name, flags=re.IGNORECASE)
+    info = re.sub("\[\d{1,7}(-\d*x)?\]$", "", folder_name.replace(new_name, ""))
 
     #pattern = r"^((?P<session_1>\(.*?\d+.*?\))? ?(\[(?P<author>.*?)\])? ?(?P<name>[^\[\(]*)) ?(?P<session_2>\(.*?\d+.*?\))? ?(?P<parody>\(.*?\))?$"
     #repl = r"\g<author>---ForSplit---\g<session_1>\g<session_2>    \g<name> \g<parody>"
@@ -22,7 +22,7 @@ for folder_name in os.listdir(dir_path) :
     new_name = re.sub(pattern, repl, new_name,  flags=re.IGNORECASE)\
                  .strip()
 
-    if re.search("---ForSplit---", new_name): 
+    if re.search("---ForSplit---", new_name):
         author, new_name = new_name.split("---ForSplit---", 1)
         new_name = new_name.strip()
         if author != "":
@@ -37,5 +37,5 @@ for folder_name in os.listdir(dir_path) :
         print(folder_name)
         print(new_name.replace(dir_path, ""))
         os.rename(folder_name, new_name)
-        
+
 os.system("pause")
