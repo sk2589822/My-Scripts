@@ -1,7 +1,7 @@
 import re
 import os
 
-dir_path = r'D:\N'
+dir_path = r'D:\M'
 storage_path = r'G:\EX-II\漫'
 
 def main():

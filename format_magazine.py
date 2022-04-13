@@ -22,13 +22,14 @@ for folder_name in os.listdir(dir_path):
     else:
         new_name = re.sub(r"^(\(.*?\))? ?(\[.*?\]) ?(?P<name>.*?)$", r"\g<name>", new_name)
 
-    new_name = re.sub(r"VOL", "Vol", new_name, flags=re.IGNORECASE)
+    new_name = re.sub(r" ?VOL", " Vol", new_name, flags=re.IGNORECASE)
     new_name = re.sub(r"コミック・?|マガジン|COMIC|COMlC", "", new_name, flags=re.IGNORECASE)
 
     new_name = new_name \
+        .replace("X-EROS （ゼロス）", "X-EROS（ゼロス）") \
         .replace("(ゼロス) #", "（ゼロス） ＃") \
         .replace("Girls forM (ガールズフォーム)", "ガールズフォーム") \
-        .replace("(コミック エグゼ) ", "Vol.") \
+        .replace("( エグゼ) ", "Vol.") \
         .replace("ANGEL倶楽部", "ANGEL 倶楽部") \
         .replace("ExE", "E×E") \
         .strip()
