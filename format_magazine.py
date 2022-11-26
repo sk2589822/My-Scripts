@@ -33,6 +33,7 @@ for folder_name in os.listdir(dir_path):
         .replace("ANGEL倶楽部", "ANGEL 倶楽部") \
         .replace("ExE", "E×E") \
         .replace("刺激的SQUIRT!!", "刺激的SQUIRT！！") \
+        .replace("刺激的 SQUIRT!!", "刺激的SQUIRT！！") \
         .strip()
 
     while os.path.isdir(new_name) :
