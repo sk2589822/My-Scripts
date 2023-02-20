@@ -6,31 +6,37 @@ while ($true) {
         break
     }
 
-    $namePattern = Read-Host "Please enter pattern of of filesnames"
-    if ([string]::IsNullOrWhiteSpace($namePattern))
-    {
+    $namePattern = Read-Host "Please enter pattern of filesnames"
+    if ([string]::IsNullOrWhiteSpace($namePattern)) {
         $namePattern = "*"
     }
 
     $paths = $inputPath.Split(",")
     
-    foreach ($path in $paths)
-    {
-        Set-Location -LiteralPath $path
+    foreach ($path in $paths) {
+        if (!$path) {
+            continue
+        }
+		
+        Set-Location -LiteralPath $path.Trim()
 
         # move matched files to to /Orignal
         $originFolder = "./Orignal"
-
         if (-Not (Test-Path -Path $originFolder)) {
             New-Item -Path . -Name "Orignal" -ItemType "directory"
-            Move-Item -Path .\$namePattern.* -Destination "Orignal"
+            Move-Item -Path .\$namePattern.* -Include "*.jpg", "*.jpeg", "*.png" -Destination "Orignal"
         }
 
         # run magick
         $magickExePath = "C:\Program Files\ImageMagick-7.1.0-Q16-HDRI\magick.exe"
-        $arguments = "-monitor", "./Orignal/*", "-resize", "x2160>", "-set", "filename:name", "%t", "$path/%[filename:name]-resized.jpg"
+        $arguments = "-monitor", "./Orignal/*", "-resize", "x2160>", "-set", "filename:name", "%t", "./%[filename:name]-resized.jpg"
 
-        &$magickExePath $arguments
+        try {
+            &$magickExePath $arguments
+        }
+        catch {
+            break
+        }
 		
         [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteDirectory("$path/Orignal" , "OnlyErrorDialogs", "SendToRecycleBin")
     }
