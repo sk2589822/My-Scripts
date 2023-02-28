@@ -28,6 +28,10 @@ while ($true) {
       continue
     }
 
+    if (Test-Path -Path $path -PathType Leaf) {
+      $path = [System.IO.Path]::GetDirectoryName($path)
+    }
+
     Set-Location -LiteralPath $path
 
     # move matched files to to /Orignal
