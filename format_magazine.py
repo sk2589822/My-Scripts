@@ -27,6 +27,7 @@ for folder_name in os.listdir(dir_path):
 
     new_name = new_name \
         .replace("X-EROS （ゼロス） ", "X-EROS（ゼロス）") \
+        .replace("X-EROS （ ", "X-EROS（") \
         .replace("(ゼロス) #", "（ゼロス） ＃") \
         .replace("Girls forM (ガールズフォーム)", "ガールズフォーム") \
         .replace("( エグゼ) ", "Vol.") \
