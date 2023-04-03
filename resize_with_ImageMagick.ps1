@@ -13,7 +13,7 @@ while ($true) {
 
   $isRecursive = Read-Host "Recursive?(y/N)"
 
-  if ($isRecursive -eq 'y' || $isRecursive -eq 'Y') {
+  if ($isRecursive -eq 'y' -or $isRecursive -eq 'Y' -or $isRecursive -eq '1') {
     $paths = @(ls $inputPath)
   } else {
     $paths = New-Object System.Collections.ArrayList
