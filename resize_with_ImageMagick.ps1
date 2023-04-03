@@ -28,7 +28,7 @@ while ($true) {
       continue
     }
 
-    if (Test-Path -Path $path -PathType Leaf) {
+    if (-not (get-item $path).PSIsContainer) {
       $path = [System.IO.Path]::GetDirectoryName($path)
     }
 
