@@ -28,7 +28,7 @@ while ($true) {
       continue
     }
 
-    if (-not (get-item $path).PSIsContainer) {
+    if (-not (Test-Path -LiteralPath $path)) {
       $path = [System.IO.Path]::GetDirectoryName($path)
     }
 
