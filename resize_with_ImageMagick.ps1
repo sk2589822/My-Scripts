@@ -28,7 +28,7 @@ while ($true) {
       continue
     }
 
-    if (-not (Test-Path -LiteralPath $path)) {
+    if (Test-Path -LiteralPath $path -PathType Leaf) {
       $path = [System.IO.Path]::GetDirectoryName($path)
     }
 
