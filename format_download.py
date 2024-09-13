@@ -2,40 +2,53 @@ import re
 import os
 import pathlib
 
-dir_path = r"H:\HentaiAtHome\download"
-os.chdir(dir_path)
+ROOT = r"F:\EX\J"
+os.chdir(ROOT)
 
-for folder_name in os.listdir(dir_path) :
-    if not os.path.isdir(os.path.join(dir_path, folder_name)):
-        continue
+for folder_name in os.listdir(ROOT):
+    if not os.path.isdir(os.path.join(ROOT, folder_name)):
+      continue
 
-    if not re.search("[^\[\(]* \[\d{1,7}(-\d*x)?\]$", folder_name):
-        continue
+    pattern = r"^(\(同人.*?\))?(?P<event>.*?) ?\[(?P<author>.*?)\] ?(?P<work>.*?) ?(\(オリジナル\))?(?P<original_work>\(.*\))? ?(?P<dl_tag>\[DL版\])? ?(?P<note>\(.*?\))?$"
+    matches = re.search(pattern, folder_name)
 
-    new_name = re.sub(" ?\[(\d{1,7}(-\d*x)?|DL.|別.*?)\]", "", folder_name, flags=re.IGNORECASE)
-    info = re.sub("\[\d{1,7}(-\d*x)?\]$", "", folder_name.replace(new_name, ""))
+    if not matches:
+      continue
+    
+    author = matches.group('author')
+    work = matches.group('work')
 
-    #pattern = r"^((?P<session_1>\(.*?\d+.*?\))? ?(\[(?P<author>.*?)\])? ?(?P<name>[^\[\(]*)) ?(?P<session_2>\(.*?\d+.*?\))? ?(?P<parody>\(.*?\))?$"
-    #repl = r"\g<author>---ForSplit---\g<session_1>\g<session_2>    \g<name> \g<parody>"
-    pattern = r"^((?P<session>\(.*?\d+.*?\))? ?(\[(?P<author>.*?)\])? ?(?P<name>.*))$"
-    repl = r"\g<author>---ForSplit---\g<session> \g<name>"
-    new_name = re.sub(pattern, repl, new_name,  flags=re.IGNORECASE)\
-                 .strip()
+    if author == "" or work == "":
+      continue
 
-    if re.search("---ForSplit---", new_name):
-        author, new_name = new_name.split("---ForSplit---", 1)
-        new_name = new_name.strip()
-        if author != "":
-            pathlib.Path(author).mkdir(parents=True, exist_ok=True)
-            new_name = os.path.join(dir_path, author, new_name)
-        while os.path.isdir(new_name) :
-            if info != "":
-                new_name += info
-                info = ""
-            else:
-                new_name += " [another]"
-        print(folder_name)
-        print(new_name.replace(dir_path, ""))
-        os.rename(folder_name, new_name)
+    event = matches.group('event')
+    original_work = matches.group('original_work')
+    dl_tag = matches.group('dl_tag')
+    note = matches.group('note')
+
+    new_folder_name = work
+
+    if (original_work):
+      new_folder_name += f" {original_work}"
+
+    if (note):
+      new_folder_name += f" {note}"
+
+    if (event):
+      new_folder_name += f" {event}"
+
+    pathlib.Path(author).mkdir(parents=True, exist_ok=True)
+    new_folder_path = os.path.join(ROOT, author, new_folder_name)
+
+    while os.path.isdir(new_folder_path) :
+      if (dl_tag):
+        new_folder_path += f" {dl_tag}"
+      else:
+        new_folder_path += " [another]"
+
+    print(f"From: \t {folder_name}")
+    print(f"To: \t {new_folder_path.replace(ROOT, '')}")
+
+    os.rename(folder_name, new_folder_path)
 
 os.system("pause")
