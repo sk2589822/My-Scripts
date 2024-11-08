@@ -9,7 +9,7 @@ for folder_name in os.listdir(ROOT):
     if not os.path.isdir(os.path.join(ROOT, folder_name)):
       continue
 
-    pattern = r"^(\(同人.*?\))?(?P<event>.*?) ?\[(?P<author>.*?)\] ?(?P<work>.*?) ?(\(オリジナル\))?(?P<original_work>\(.*\))? ?(?P<dl_tag>\[DL版\])? ?(?P<note>\(.*?\))?$"
+    pattern = r"^(\(同人.*?\))?(?P<event>\(.*?\))? ?\[(?P<author>.*?)\] ?(?P<work>.*?) ?(\(オリジナル\))?(?P<original_work>\(.*\))? ?(?P<dl_tag>\[DL版\])? ?(?P<note>\(.*?\))?$"
     matches = re.search(pattern, folder_name)
 
     if not matches:
