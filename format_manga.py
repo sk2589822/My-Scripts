@@ -15,7 +15,7 @@ def main():
             continue
 
         # Ignore folder which is not matched.
-        if not re.search('^(\(.*?\))? ?\[.*?\].*?$', folder_name):
+        if not re.search(r'^(\(.*?\))? ?\[.*?\].*?$', folder_name):
             continue
 
         folder_name_without_info, info = split_folder_name_and_info(folder_name)
@@ -24,7 +24,7 @@ def main():
         new_index = 0
 
         for existing_folder_name in existing_mangas:
-            existing_folder_name_temp = re.sub('\(\d+\)', "", existing_folder_name)
+            existing_folder_name_temp = re.sub(r'\(\d+\)', "", existing_folder_name)
             existing_author, existing_title = existing_folder_name_temp.split('　', 1)
             # If the folder is existing in storage_path
             if existing_author == author and existing_title == title:
@@ -42,13 +42,13 @@ def main():
     os.system('pause')
 
 def split_folder_name_and_info(folder_name):
-    folder_name_without_info = re.sub(' ?((\[(\d{6,7}|DL.|別.*)\])|( \+ .*))*$', '', folder_name, flags=re.IGNORECASE)
-    info = re.sub('\[\d{6,7}\]$', '', folder_name.replace(folder_name_without_info, ''))
+    folder_name_without_info = re.sub(r' ?((\[(\d{6,7}|DL.|別.*)\])|( \+ .*))*$', '', folder_name, flags=re.IGNORECASE)
+    info = re.sub(r'\[\d{6,7}\]$', '', folder_name.replace(folder_name_without_info, ''))
     return folder_name_without_info, info
 
 
 def get_author_and_title(folder_name):
-    match = re.match('^(\(.*?\))? ?\[(?P<author>.*?)\] ?(?P<title>.*?)$',
+    match = re.match(r'^(\(.*?\))? ?\[(?P<author>.*?)\] ?(?P<title>.*?)$',
         folder_name,
         flags=re.IGNORECASE)
     return match.group('author'), match.group('title')
@@ -57,7 +57,7 @@ def get_author_and_title(folder_name):
 def get_new_index(existing_mangas):
     indexes = []
     for folder_name in existing_mangas:
-        search = re.search('　\((\d+)\)', folder_name);
+        search = re.search(r'　\((\d+)\)', folder_name);
         if search:
             index = int(search.group(1))
             indexes.append(index)
