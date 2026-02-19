@@ -38,7 +38,7 @@ while ($true) {
     $originFolder = "./Orignal"
     if (-Not (Test-Path -Path $originFolder)) {
       New-Item -Path . -Name "Orignal" -ItemType "directory"
-      Move-Item -Path .\$namePattern.* -Include "*.jpg", "*.jpeg", "*.png" -Destination "Orignal"
+      Move-Item -Path .\$namePattern.* -Include "*.jpg", "*.webp", "*.jpeg", "*.png" -Destination "Orignal"
     }
 
     # run magick
