@@ -9,6 +9,7 @@ subtitle-backup/ 已有同名備份的字幕視為處理過，跳過。
 import os
 import re
 import shutil
+import sys
 
 # ===== 設定區 =====
 BACKUP_DIR_NAME = 'subtitle-backup'
@@ -16,6 +17,9 @@ DEFAULT_STYLE = ('Style: Default,Microsoft YaHei,38,&H00FFFFFF,&HF0000000,&H0080
                  '-1,0,0,0,100,100,0,0,1,1,0,2,30,30,10,134')
 REMOVED_STYLE_NAMES = ['Default', '魔穗体', 'maho', 'Maho', 'Taka-Default', 'Sub-CN', 'Sub-CH']
 # =================
+
+# 輸出被重導向時（非真實主控台），罕見字元以 ? 取代而不是讓整支腳本炸掉
+sys.stdout.reconfigure(errors='replace')
 
 
 def main():

@@ -3,11 +3,15 @@
 # ///
 import os
 import re
+import sys
 
 # ===== 設定區 =====
 DIR_PATH = r'D:\M'             # 待整理區
 STORAGE_PATH = r'G:\EX-II\漫'  # 收藏庫
 # =================
+
+# 輸出被重導向時（非真實主控台），罕見字元以 ? 取代而不是讓整支腳本炸掉
+sys.stdout.reconfigure(errors='replace')
 
 
 def main():
