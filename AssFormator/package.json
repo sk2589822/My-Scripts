@@ -1,9 +1,0 @@
-{
-  "name": "AssFormator",
-  "version": "1.0.0",
-  "main": "index.js",
-  "license": "MIT",
-  "dependencies": {
-    "prompt-sync-history": "^1.0.1"
-  }
-}
