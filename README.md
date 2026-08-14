@@ -7,12 +7,4 @@
 * `AssFormator.bat`
 
 ### 整理檔案/資料夾
-* `format_download.py`
-* `format_magazine.py`
 * `format_manga.py`
-* `add_parentheses.py`
-* `remove_parentheses.py`
-* `delete_galleryinfo.bat`
-
-### 批次修改資料夾 icon
-* `batchFolderIconEditor.js`
