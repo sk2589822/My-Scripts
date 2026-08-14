@@ -11,9 +11,10 @@ STORAGE_PATH = r'G:\EX-II\漫'  # 收藏庫
 
 
 def main():
-    ensure = input('輸入「1」執行改名，其他鍵只預覽結果：') == '1'
-
     manga_list = os.listdir(STORAGE_PATH)
+
+    planned_names = set()   # 本批已規劃占用的新名字（預覽階段還沒真的改名，要靠這份名單防同批撞名）
+    operations = []         # (基準路徑, 舊名, 新名)
 
     for folder_name in os.listdir(DIR_PATH):
         # 只處理資料夾
@@ -40,10 +41,31 @@ def main():
             new_index = get_new_index(existing_mangas)
             new_folder_name = get_new_folder_name(author, title, new_index)
 
-        new_folder_name = add_info_if_duplicate(new_folder_name, info)
+        new_folder_name = add_info_if_duplicate(new_folder_name, info, planned_names)
+        planned_names.add(new_folder_name)
+        operations.append((DIR_PATH, folder_name, new_folder_name))
 
-        rename_folder(folder_name, new_folder_name, DIR_PATH, ensure)
-        rename_existing_folder(new_index, existing_mangas, ensure)
+        # 作者出現第二部作品時，第一部要回頭補 (1)
+        if new_index == 2 and (STORAGE_PATH, existing_mangas[0]) not in {(op[0], op[1]) for op in operations}:
+            existing_author, existing_title = existing_mangas[0].split('　', 1)
+            renamed = get_new_folder_name(existing_author, existing_title, 1)
+            planned_names.add(renamed)
+            operations.append((STORAGE_PATH, existing_mangas[0], renamed))
+
+    if not operations:
+        input('沒有需要改名的資料夾。按 Enter 關閉')
+        return
+
+    for _, old_name, new_name in operations:
+        print(old_name.ljust(40), '\t->', new_name)
+
+    print()
+    if input('確認無誤請直接按 Enter 執行改名（輸入任意文字則取消）：') == '':
+        for base_path, old_name, new_name in operations:
+            os.rename(os.path.join(base_path, old_name), os.path.join(base_path, new_name))
+        print(f'完成，共改名 {len(operations)} 個資料夾。')
+    else:
+        print('已取消，未做任何改動。')
 
     input('按 Enter 關閉')
 
@@ -84,10 +106,11 @@ def get_new_folder_name(author, title, new_index):
         return f'{author}　({new_index}){title}'
 
 
-def add_info_if_duplicate(new_folder_name, info):
+def add_info_if_duplicate(new_folder_name, info, planned_names):
     # 名字必須在待整理區與收藏庫兩邊都唯一：
     # 待整理區唯一是為了改名本身不撞，收藏庫唯一是為了之後搬進去不撞
-    while (os.path.isdir(os.path.join(DIR_PATH, new_folder_name))
+    while (new_folder_name in planned_names
+           or os.path.isdir(os.path.join(DIR_PATH, new_folder_name))
            or os.path.isdir(os.path.join(STORAGE_PATH, new_folder_name))):
         if info != '':
             new_folder_name += info
@@ -95,19 +118,6 @@ def add_info_if_duplicate(new_folder_name, info):
         else:
             new_folder_name += ' [another]'
     return new_folder_name
-
-
-def rename_folder(old_name, new_name, path, ensure):
-    print(old_name.ljust(40), '\t->', new_name)
-
-    if ensure:
-        os.rename(os.path.join(path, old_name), os.path.join(path, new_name))
-
-
-def rename_existing_folder(new_index, existing_mangas, ensure):
-    if new_index == 2:
-        author, title = existing_mangas[0].split('　', 1)
-        rename_folder(existing_mangas[0], get_new_folder_name(author, title, 1), STORAGE_PATH, ensure)
 
 
 main()
