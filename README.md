@@ -20,7 +20,7 @@
 ## 慣例
 
 - 每支腳本頂部有「設定區」常數塊，改設定＝改原始碼
-- 需要看輸出的腳本結尾停住等 Enter，雙擊執行時視窗不會閃退（`massigra-open-session.py` 開完圖就直接關閉）
+- 需要看輸出的腳本結尾停住等 Enter，雙擊執行時視窗不會閃退（`massigra-open-session.py` 順利開完就直接關閉，只有缺檔時停住列出清單）
 - 領域詞彙見 [CONTEXT.md](CONTEXT.md)，重大決策見 [docs/adr/](docs/adr/)
 
 ## 需求

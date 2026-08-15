@@ -36,13 +36,22 @@ def main():
         return
 
     opened = 0
+    missing = []
     for path in files:
         if not os.path.exists(path):
-            print(f'[找不到] {path}')
+            missing.append(path)
             continue
         subprocess.Popen([exe, path])
         opened += 1
         time.sleep(DELAY_MS / 1000)
+
+    # 全部開完就直接關閉；有缺檔才停住，免得清單一閃而過
+    if missing:
+        print(f'以下 {len(missing)} 張找不到：')
+        for path in missing:
+            print(f'  {path}')
+        print()
+        input(f'已重開 {opened}/{len(files)} 張。按 Enter 關閉')
 
 
 main()
