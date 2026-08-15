@@ -7,13 +7,17 @@
 原圖先移進該資料夾的 Original/ 暫存，縮圖成功後整個暫存資料夾丟進資源回收桶；
 Original/ 已存在代表上次沒跑完，會直接接續縮圖、不再搬檔。
 """
+import ctypes
 import fnmatch
 import os
 import re
 import shutil
 import subprocess
 import sys
+import threading
+import time
 import unicodedata
+from concurrent.futures import ThreadPoolExecutor
 
 from send2trash import send2trash
 
@@ -21,12 +25,15 @@ from send2trash import send2trash
 MAX_HEIGHT = 2160
 STAGING_DIR_NAME = 'Original'
 IMAGE_EXTENSIONS = {'.jpg', '.jpeg', '.png', '.webp'}
+WORKERS = 6  # 同時處理幾張（16 核實測的甜蜜點，約 3.2 倍）
 # =================
 
 # magick -monitor 的進度格式：load image[路徑]: 300 of 2500, 12% complete
 # 只把路徑換成短前綴，其餘訊息照 magick 原樣顯示
 MONITOR_PATTERN = re.compile(
     r'^(?P<phase>[a-z ]+)\[(?P<path>.*)\]: (?P<progress>\d+ of \d+, \d+% complete)$')
+REDRAW_INTERVAL = 0.05  # 重畫間隔；平行時每張圖都在回報，畫太密只會拖慢主控台
+ENABLE_VIRTUAL_TERMINAL_PROCESSING = 0x0004
 
 # 輸出被重導向時（非真實主控台）一律用 UTF-8，日文檔名才不會被 cp950 變成一排 ? 或直接炸掉
 sys.stdout.reconfigure(encoding='utf-8', errors='replace')
@@ -100,11 +107,16 @@ def process_folder(folder, name_pattern):
     names = sorted(name for name in os.listdir(staging)
                    if os.path.isfile(os.path.join(staging, name)))
 
-    failed = []
-    for index, name in enumerate(names, start=1):
-        if not resize_one(staging, folder, name, index, len(names)):
-            failed.append(name)
+    display = Display()
+    try:
+        with ThreadPoolExecutor(max_workers=WORKERS) as pool:
+            results = list(pool.map(
+                lambda pair: resize_one(staging, folder, pair[1], pair[0], len(names), display),
+                enumerate(names, start=1)))
+    finally:
+        display.close()
 
+    failed = [name for name, ok in zip(names, results) if not ok]
     if failed:
         print(f'[錯誤] {len(failed)} 張失敗，原圖保留在 {staging}，不丟資源回收桶。')
         return
@@ -113,8 +125,8 @@ def process_folder(folder, name_pattern):
     send2trash(staging)
 
 
-def resize_one(staging, folder, name, index, total):
-    """縮一張圖，進度就地更新在這張圖自己那一行。回傳是否成功。
+def resize_one(staging, folder, name, index, total, display):
+    """縮一張圖，進度更新在這張圖自己那一行。回傳是否成功。
 
     一次只餵一張給 magick：餵萬用字元的話它會先載入全部圖片再一起縮，
     既吃記憶體，進度也會變成「全部載入→全部縮圖」而沒辦法一張一行。
@@ -126,10 +138,8 @@ def resize_one(staging, folder, name, index, total):
         os.path.join(folder, f'{os.path.splitext(name)[0]}-resized.jpg'),
     ], stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, bufsize=0)
 
-    # magick 的進度走 stderr、以 \r 分隔、字串一律是 UTF-8；自己接管解碼才不會在
-    # cp950 主控台變亂碼，也才能把長路徑換成短標籤、不讓它換行洗版
     prefix = f'[{index}/{total}] {name}'
-    state = {'last_line': None, 'live': sys.stdout.isatty()}
+    last = None
     buffer = b''
     while True:
         data = process.stderr.read(4096)
@@ -139,81 +149,116 @@ def resize_one(staging, folder, name, index, total):
         chunks = buffer.split(b'\r')
         buffer = chunks.pop()
         for chunk in chunks:
-            show_monitor_output(chunk, prefix, state)
+            last = show_chunk(chunk, prefix, index, display) or last
     if buffer:
-        show_monitor_output(buffer, prefix, state)
+        last = show_chunk(buffer, prefix, index, display) or last
 
     process.wait()
     if process.returncode == 0:
-        keep_line(prefix, state)
+        # magick 最後印的就是 100%，原樣定格
+        display.finish(index, last or prefix)
         return True
 
-    replace_line(f'{prefix}  失敗（exit {process.returncode}）', state)
+    display.finish(index, f'{prefix}  失敗（exit {process.returncode}）')
     return False
 
 
-def show_monitor_output(raw, prefix, state):
+def show_chunk(raw, prefix, index, display):
+    """處理 magick 的一段輸出。是進度就回傳那一行，其餘回 None。
+
+    magick 的進度走 stderr、以 \\r 分隔、字串一律是 UTF-8；自己接管解碼才不會在
+    cp950 主控台變亂碼。
+    """
     text = raw.decode('utf-8', errors='replace').strip()
     if not text:
-        return
+        return None
 
     match = MONITOR_PATTERN.match(text)
     if not match:
-        # 不是進度，就是 magick 的警告或錯誤，要留在畫面上
-        if state['last_line'] is not None:
-            clear_line()
-            state['last_line'] = None
-        print(text)
-        return
-
-    # 進度只在真的主控台上畫；被重導向時那些 \r 只會變成一大堆垃圾
-    if not state['live']:
-        return
+        display.message(text)  # magick 的警告或錯誤
+        return None
 
     line = f'{prefix}  {match["phase"]}: {match["progress"]}'
-    if line != state['last_line']:
-        state['last_line'] = line
-        write_line(line)
+    display.update(index, line)
+    return line
 
 
-def keep_line(prefix, state):
-    """成功收尾：magick 最後印的就是 100%，原封不動定格在這一行"""
-    if state['last_line'] is None:
-        # magick 沒回報過進度（圖太小），或輸出被重導向
-        print(prefix)
-    else:
-        sys.stdout.write('\n')
+class Display:
+    """畫面底部維持一個「進行中」區塊，跑完的檔案往上堆成永久紀錄。
+
+    平行處理時好幾張圖同時在回報進度，而 \\r 只能回到目前這行的行首、沒辦法往上移，
+    所以改用 ANSI 游標控制：每次更新就把整個區塊擦掉重畫。
+    """
+
+    def __init__(self):
+        self.live = sys.stdout.isatty() and enable_ansi()
+        self.active = {}
+        self.drawn = 0
+        self.last_draw = 0.0
+        self.lock = threading.Lock()
+
+    def update(self, index, line):
+        """某張圖的進度變了"""
+        with self.lock:
+            if not self.live or self.active.get(index) == line:
+                return
+            self.active[index] = line
+            if time.monotonic() - self.last_draw < REDRAW_INTERVAL:
+                return  # 這次先略過，下一次更新或收尾時會一起補上
+            self._redraw()
+
+    def finish(self, index, line):
+        """某張圖跑完了：把它的最後一行留成永久紀錄"""
+        with self.lock:
+            self.active.pop(index, None)
+            self._erase()
+            print(truncate(line, line_width()) if self.live else line)
+            self._redraw()
+
+    def message(self, text):
+        """magick 的警告或錯誤，原樣留在畫面上"""
+        with self.lock:
+            self._erase()
+            print(text)
+            self._redraw()
+
+    def close(self):
+        with self.lock:
+            self._erase()
+            sys.stdout.flush()
+
+    def _erase(self):
+        if self.live and self.drawn:
+            sys.stdout.write(f'\x1b[{self.drawn}A\x1b[J')
+            self.drawn = 0
+
+    def _redraw(self):
+        if not self.live:
+            return
+        self._erase()
+        for index in sorted(self.active):
+            sys.stdout.write(truncate(self.active[index], line_width()) + '\n')
+        self.drawn = len(self.active)
+        self.last_draw = time.monotonic()
         sys.stdout.flush()
-    state['last_line'] = None
 
 
-def replace_line(text, state):
-    """失敗收尾：把停在半途的進度換成失敗訊息"""
-    if state['live'] and state['last_line'] is not None:
-        write_line(text)
-        sys.stdout.write('\n')
-        sys.stdout.flush()
-    else:
-        print(text)
-    state['last_line'] = None
-
-
-def write_line(text):
-    sys.stdout.write('\r' + fit(text, line_width()))
-    sys.stdout.flush()
-
-
-def clear_line():
-    sys.stdout.write('\r' + ' ' * line_width() + '\r')
-    sys.stdout.flush()
+def enable_ansi():
+    """Windows 主控台預設不吃 ANSI 游標控制（實測 mode 0x3），要自己打開"""
+    kernel32 = ctypes.windll.kernel32
+    handle = kernel32.GetStdHandle(-11)
+    mode = ctypes.c_uint32()
+    if not kernel32.GetConsoleMode(handle, ctypes.byref(mode)):
+        return False
+    return bool(kernel32.SetConsoleMode(handle, mode.value | ENABLE_VIRTUAL_TERMINAL_PROCESSING))
 
 
 def line_width():
     return max(shutil.get_terminal_size((100, 25)).columns - 1, 20)
 
 
-def fit(text, width):
-    """截斷並補滿到指定顯示寬度（全形字算兩格），免得殘留上一行的尾巴"""
+def truncate(text, width):
+    """截到指定顯示寬度（全形字算兩格），免得長檔名折行把區塊撐爛"""
     result = ''
     used = 0
     for char in text:
@@ -222,7 +267,7 @@ def fit(text, width):
             break
         result += char
         used += size
-    return result + ' ' * (width - used)
+    return result
 
 
 main()
