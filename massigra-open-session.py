@@ -44,8 +44,5 @@ def main():
         opened += 1
         time.sleep(DELAY_MS / 1000)
 
-    print()
-    input(f'已重開 {opened}/{len(files)} 張（存檔時間：{session.get("saved_at", "?")}）。按 Enter 關閉')
-
 
 main()
