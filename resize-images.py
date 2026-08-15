@@ -21,8 +21,8 @@ STAGING_DIR_NAME = 'Original'
 IMAGE_EXTENSIONS = {'.jpg', '.jpeg', '.png', '.webp'}
 # =================
 
-# 輸出被重導向時（非真實主控台），罕見字元以 ? 取代而不是讓整支腳本炸掉
-sys.stdout.reconfigure(errors='replace')
+# 輸出被重導向時（非真實主控台）一律用 UTF-8，日文檔名才不會被 cp950 變成一排 ? 或直接炸掉
+sys.stdout.reconfigure(encoding='utf-8', errors='replace')
 
 
 def main():
@@ -90,18 +90,52 @@ def process_folder(folder, name_pattern):
         for name in targets:
             shutil.move(os.path.join(folder, name), os.path.join(staging, name))
 
-    result = subprocess.run([
+    returncode = run_magick(staging, folder)
+    if returncode != 0:
+        print(f'[錯誤] magick 失敗（exit {returncode}），原圖保留在 {staging}，不丟資源回收桶。')
+        return
+
+    send2trash(staging)
+
+
+def run_magick(staging, folder):
+    """跑 magick 並回傳 exit code。
+
+    magick 的進度走 stderr、以 \\r 分隔、字串一律是 UTF-8。讓它直接寫主控台的話，
+    cp950 會把日文檔名解成亂碼，所以這裡接管輸出、自己解碼再印出去。
+    """
+    process = subprocess.Popen([
         'magick', '-monitor',
         os.path.join(staging, '*'),
         '-resize', f'x{MAX_HEIGHT}>',
         '-set', 'filename:name', '%t',
         os.path.join(folder, '%[filename:name]-resized.jpg'),
-    ])
-    if result.returncode != 0:
-        print(f'[錯誤] magick 失敗（exit {result.returncode}），原圖保留在 {staging}，不丟資源回收桶。')
-        return
+    ], stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, bufsize=0)
 
-    send2trash(staging)
+    buffer = b''
+    while True:
+        data = process.stderr.read(4096)
+        if not data:
+            break
+        buffer += data
+        chunks = buffer.split(b'\r')
+        buffer = chunks.pop()
+        for chunk in chunks:
+            show(chunk)
+    if buffer:
+        show(buffer)
+    print()
+
+    process.wait()
+    return process.returncode
+
+
+def show(raw):
+    text = raw.decode('utf-8', errors='replace').strip()
+    if not text:
+        return
+    sys.stdout.write('\r' + text)
+    sys.stdout.flush()
 
 
 main()

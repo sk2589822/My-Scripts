@@ -10,8 +10,8 @@ DIR_PATH = r'D:\M'             # 待整理區
 STORAGE_PATH = r'G:\EX-II\漫'  # 收藏庫
 # =================
 
-# 輸出被重導向時（非真實主控台），罕見字元以 ? 取代而不是讓整支腳本炸掉
-sys.stdout.reconfigure(errors='replace')
+# 輸出被重導向時（非真實主控台）一律用 UTF-8，日文檔名才不會被 cp950 變成一排 ? 或直接炸掉
+sys.stdout.reconfigure(encoding='utf-8', errors='replace')
 
 
 def main():

@@ -22,8 +22,8 @@ PROCESS_NAME = 'massigra.exe'
 SESSION_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'massigra-session.json')
 # =================
 
-# 輸出被重導向時（非真實主控台），罕見字元以 ? 取代而不是讓整支腳本炸掉
-sys.stdout.reconfigure(errors='replace')
+# 輸出被重導向時（非真實主控台）一律用 UTF-8，日文檔名才不會被 cp950 變成一排 ? 或直接炸掉
+sys.stdout.reconfigure(encoding='utf-8', errors='replace')
 
 
 def main():

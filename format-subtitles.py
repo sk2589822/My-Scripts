@@ -18,8 +18,8 @@ DEFAULT_STYLE = ('Style: Default,Microsoft YaHei,38,&H00FFFFFF,&HF0000000,&H0080
 REMOVED_STYLE_NAMES = ['Default', '魔穗体', 'maho', 'Maho', 'Taka-Default', 'Sub-CN', 'Sub-CH']
 # =================
 
-# 輸出被重導向時（非真實主控台），罕見字元以 ? 取代而不是讓整支腳本炸掉
-sys.stdout.reconfigure(errors='replace')
+# 輸出被重導向時（非真實主控台）一律用 UTF-8，日文檔名才不會被 cp950 變成一排 ? 或直接炸掉
+sys.stdout.reconfigure(encoding='utf-8', errors='replace')
 
 
 def main():

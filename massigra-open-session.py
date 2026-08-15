@@ -14,8 +14,8 @@ FALLBACK_EXE = r'D:\My Document\My Tools\MassiGra\MassiGra.exe'
 SESSION_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'massigra-session.json')
 # =================
 
-# 輸出被重導向時（非真實主控台），罕見字元以 ? 取代而不是讓整支腳本炸掉
-sys.stdout.reconfigure(errors='replace')
+# 輸出被重導向時（非真實主控台）一律用 UTF-8，日文檔名才不會被 cp950 變成一排 ? 或直接炸掉
+sys.stdout.reconfigure(encoding='utf-8', errors='replace')
 
 
 def main():
@@ -41,7 +41,8 @@ def main():
         if not os.path.exists(path):
             missing.append(path)
             continue
-        subprocess.Popen([exe, path])
+        # 導掉輸出，免得看圖程式往這個主控台吐非 UTF-8 的訊息
+        subprocess.Popen([exe, path], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         opened += 1
         time.sleep(DELAY_MS / 1000)
 
