@@ -6,6 +6,7 @@
 
 之後用 massigra-open-session.py 重新開啟全部。
 """
+import ctypes
 import json
 import os
 import re
@@ -21,6 +22,11 @@ import win32process
 PROCESS_NAME = 'massigra.exe'
 SESSION_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'massigra-session.json')
 # =================
+
+ENABLE_VIRTUAL_TERMINAL_PROCESSING = 0x0004
+REMOVED_STYLE = '\x1b[97;41m'  # 白字紅底
+ADDED_STYLE = '\x1b[97;42m'    # 白字綠底
+RESET_STYLE = '\x1b[0m'
 
 # 輸出被重導向時（非真實主控台）一律用 UTF-8，日文檔名才不會被 cp950 變成一排 ? 或直接炸掉
 sys.stdout.reconfigure(encoding='utf-8', errors='replace')
@@ -38,8 +44,27 @@ def main():
         input('MassiGra 目前沒有開著任何圖。按 Enter 關閉')
         return
 
-    for path in paths:
-        print(path)
+    saved_at, old_paths = load_saved_session()
+    removed = [path for path in old_paths if path not in paths]
+    added = [path for path in paths if path not in old_paths]
+
+    if saved_at:
+        print(f'跟 {saved_at} 存的工作階段（{len(old_paths)} 張）比較：')
+    colored = enable_ansi()
+    for path in removed:
+        print(highlight(f'  - {path}', REMOVED_STYLE, colored))
+    for path in added:
+        print(highlight(f'  + {path}', ADDED_STYLE, colored))
+    if not removed and not added:
+        print('  沒有變動')
+    print()
+
+    # 只有新增不會弄丟東西，直接存；有減少才要確認，免得開錯時把舊的覆蓋掉
+    if removed:
+        try:
+            input(f'會少掉 {len(removed)} 張。按 Enter 存檔，直接關掉視窗或 Ctrl+C 取消')
+        except (KeyboardInterrupt, EOFError):
+            return
 
     session = {
         'exe': windows[0][2],
@@ -49,8 +74,31 @@ def main():
     with open(SESSION_FILE, 'w', encoding='utf-8') as f:
         json.dump(session, f, ensure_ascii=False, indent=2)
 
-    print()
     input(f'共 {len(paths)} 張，已存到 {os.path.basename(SESSION_FILE)}。按 Enter 關閉')
+
+
+def load_saved_session():
+    """讀現有的工作階段檔 → (存檔時間, 圖檔路徑清單)；沒有或讀不懂就當作空的"""
+    try:
+        with open(SESSION_FILE, encoding='utf-8') as f:
+            saved = json.load(f)
+        return saved.get('saved_at', ''), list(saved['files'])
+    except (OSError, ValueError, KeyError, TypeError, AttributeError):
+        return '', []
+
+
+def highlight(text, style, colored):
+    return f'{style}{text}{RESET_STYLE}' if colored else text
+
+
+def enable_ansi():
+    """Windows 主控台預設不吃 ANSI 色碼，要自己打開；不是真實主控台（被重導向）就回 False 不上色"""
+    kernel32 = ctypes.windll.kernel32
+    handle = kernel32.GetStdHandle(-11)
+    mode = ctypes.c_uint32()
+    if not kernel32.GetConsoleMode(handle, ctypes.byref(mode)):
+        return False
+    return bool(kernel32.SetConsoleMode(handle, mode.value | ENABLE_VIRTUAL_TERMINAL_PROCESSING))
 
 
 def list_massigra_windows():
